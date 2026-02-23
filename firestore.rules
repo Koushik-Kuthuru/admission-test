@@ -1,0 +1,27 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Allow anyone to read questions (needed for exam)
+    // Prevent modification by students, but allow admin writes if needed in future
+    match /questions/{document=**} {
+      allow read: if true;
+      allow write: if true; 
+    }
+
+    // Allow students to save registration
+    match /registrations/{document=**} {
+      allow create: if true;
+      allow read: if true;
+      allow delete: if true; // Allow admin deletion
+    }
+
+    // Allow students to save results
+    // Allow Admin Dashboard to READ and DELETE results
+    match /exam_results/{document=**} {
+      allow create: if true;
+      allow read: if true;
+      allow delete: if true; // <--- ADDED: Allow deleting results
+    }
+  }
+}

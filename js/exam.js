@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Display Info
     document.getElementById('class-display').textContent = selectedClass;
-    document.getElementById('set-display').textContent = 'Set ' + selectedSet;
+    // document.getElementById('set-display').textContent = 'Set ' + selectedSet; // REMOVED
     document.getElementById('student-name-display').textContent = studentData.name;
 
     // 2. Load Questions
@@ -95,8 +95,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (questions.length === 0) {
-        alert('No questions found in this set.');
-        window.location.href = 'sets.html';
+        console.warn('No questions found. Redirecting to start.');
+        alert('Error loading exam questions. Please try again.');
+        window.location.href = 'index.html';
         return;
     }
 
@@ -124,7 +125,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const btn = document.createElement('button');
             btn.className = `w-10 h-10 rounded-lg text-sm font-bold border flex items-center justify-center transition-all ${
                 index === currentQuestionIndex 
-                    ? 'bg-gray-900 border-gray-900 text-white ring-2 ring-gray-900 ring-offset-2' 
+                    ? 'bg-green-600 border-green-600 text-white ring-2 ring-green-600 ring-offset-2' 
                     : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-white hover:border-gray-300 shadow-sm'
             }`;
             btn.textContent = index + 1;
@@ -147,10 +148,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             let baseClass = "w-10 h-10 rounded-lg text-sm font-bold border flex items-center justify-center transition-all ";
             
             if (index === currentQuestionIndex) {
-                btn.className = baseClass + "bg-gray-900 border-gray-900 text-white ring-2 ring-gray-900 ring-offset-2 scale-105 z-10 shadow-md";
+                // Current Question: Green (Active)
+                btn.className = baseClass + "bg-green-600 border-green-600 text-white ring-2 ring-green-600 ring-offset-2 scale-105 z-10 shadow-md";
             } else if (userAnswers[index]) {
-                btn.className = baseClass + "bg-idps-primary text-white border-idps-primary shadow-sm";
+                // Answered: Black (Completed)
+                btn.className = baseClass + "bg-gray-900 text-white border-gray-900 shadow-sm";
             } else {
+                // Not Answered: Gray (Pending)
                 btn.className = baseClass + "bg-gray-50 border-gray-200 text-gray-500 hover:bg-white hover:border-gray-300 shadow-sm";
             }
         });
@@ -183,10 +187,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             label.className = 'block cursor-pointer group relative';
             label.innerHTML = `
                 <input type="radio" name="question-${index}" value="${opt}" class="hidden peer" ${isSelected ? 'checked' : ''}>
-                <div class="p-5 pl-14 rounded-xl border-2 border-gray-100 bg-white peer-checked:border-idps-primary peer-checked:bg-green-50/30 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm peer-checked:shadow-md">
-                    <span class="text-gray-700 font-medium peer-checked:text-gray-900 peer-checked:font-bold text-lg transition-colors">${opt}</span>
+                <div class="p-5 pl-14 rounded-xl border-2 border-gray-100 bg-white peer-checked:border-black peer-checked:bg-gray-50 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm peer-checked:shadow-md">
+                    <span class="text-gray-700 font-medium peer-checked:text-black peer-checked:font-bold text-lg transition-colors">${opt}</span>
                 </div>
-                <div class="absolute left-5 top-1/2 transform -translate-y-1/2 w-6 h-6 border-2 border-gray-300 rounded-full peer-checked:border-idps-primary peer-checked:bg-idps-primary transition-all flex items-center justify-center group-hover:border-gray-400">
+                <div class="absolute left-5 top-1/2 transform -translate-y-1/2 w-6 h-6 border-2 border-gray-300 rounded-full peer-checked:border-black peer-checked:bg-black transition-all flex items-center justify-center group-hover:border-gray-400">
                     <div class="w-2.5 h-2.5 bg-white rounded-full opacity-0 peer-checked:opacity-100 transition-opacity transform scale-0 peer-checked:scale-100"></div>
                 </div>
             `;

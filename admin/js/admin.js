@@ -111,29 +111,53 @@ document.addEventListener('DOMContentLoaded', async () => {
                         ${score} / ${total} (${percentage}%)
                     </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    Set ${result.set}
-                </td>
+                <!-- Set Column Removed -->
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     ${date}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button class="text-idps-primary hover:text-idps-accent font-bold flex items-center justify-end gap-1 ml-auto view-btn">
-                        View
-                        <span class="material-symbols-outlined text-[16px]">visibility</span>
-                    </button>
+                    <div class="relative inline-block text-left">
+                        <button class="p-2 rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-idps-primary" onclick="toggleMenu('${result.id}')">
+                            <span class="material-symbols-outlined text-gray-500">more_vert</span>
+                        </button>
+                        <div id="menu-${result.id}" class="hidden absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50 animate-fade-in origin-top-right focus:outline-none">
+                            <div class="py-1" role="menu" aria-orientation="vertical">
+                                <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 flex items-center gap-2" role="menuitem" onclick="openDetails(allResults.find(r => r.id === '${result.id}'))">
+                                    <span class="material-symbols-outlined text-[18px]">visibility</span> View Details
+                                </button>
+                                <button class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-900 flex items-center gap-2" role="menuitem" onclick="deleteResult('${result.id}')">
+                                    <span class="material-symbols-outlined text-[18px]">delete</span> Delete Result
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </td>
             `;
             
-            // Attach desktop event
-            row.querySelector('.view-btn').onclick = () => openDetails(result);
             tableBody.appendChild(row);
 
             // Mobile Card
             const card = document.createElement('div');
-            card.className = 'bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col gap-3';
+            card.className = 'bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col gap-3 relative';
             card.innerHTML = `
-                <div class="flex justify-between items-start">
+                <div class="absolute top-2 right-2">
+                    <div class="relative inline-block text-left">
+                        <button class="p-1 rounded-full hover:bg-gray-100 transition-colors" onclick="toggleMenu('mobile-${result.id}')">
+                            <span class="material-symbols-outlined text-gray-400 text-[20px]">more_vert</span>
+                        </button>
+                        <div id="menu-mobile-${result.id}" class="hidden absolute right-0 mt-2 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50 animate-fade-in origin-top-right">
+                            <div class="py-1">
+                                <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2" onclick="openDetails(allResults.find(r => r.id === '${result.id}'))">
+                                    <span class="material-symbols-outlined text-[16px]">visibility</span> View
+                                </button>
+                                <button class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2" onclick="deleteResult('${result.id}')">
+                                    <span class="material-symbols-outlined text-[16px]">delete</span> Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-start pr-8">
                     <div>
                         <div class="text-sm font-bold text-gray-900">${student.name || 'Unknown'}</div>
                         <div class="text-xs text-gray-500">Class ${result.class} ${student.stream ? `(${student.stream})` : ''}</div>
@@ -145,20 +169,90 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 <div class="flex justify-between items-center text-xs text-gray-500 border-t border-gray-100 pt-3 mt-1">
                     <div class="flex gap-4">
-                        <span><span class="font-semibold text-gray-700">Set:</span> ${result.set}</span>
+                        <!-- Set Removed -->
                         <span><span class="font-semibold text-gray-700">Date:</span> ${date}</span>
                     </div>
-                    <button class="text-idps-primary font-bold flex items-center gap-1 view-btn-mobile p-1 rounded hover:bg-green-50 transition-colors">
-                        Details <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
-                    </button>
                 </div>
             `;
 
-            // Attach mobile event
-            card.querySelector('.view-btn-mobile').onclick = () => openDetails(result);
             cardsContainer.appendChild(card);
         });
     }
+
+    // Toggle Menu
+    window.toggleMenu = (id) => {
+        // Close all other menus first
+        document.querySelectorAll('[id^="menu-"]').forEach(el => {
+            if (el.id !== `menu-${id}`) el.classList.add('hidden');
+        });
+        
+        const menu = document.getElementById(`menu-${id}`);
+        if (menu) {
+            menu.classList.toggle('hidden');
+        }
+        
+        // Stop propagation to prevent immediate closing
+        event.stopPropagation();
+    };
+
+    // Close menus on outside click
+    document.addEventListener('click', () => {
+        document.querySelectorAll('[id^="menu-"]').forEach(el => el.classList.add('hidden'));
+    });
+
+    // Delete Result Logic
+    const deleteModal = document.getElementById('deleteModal');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    let deleteId = null;
+
+    // Make closeDeleteModal global
+    window.closeDeleteModal = () => {
+        deleteModal.classList.add('hidden');
+        deleteModal.classList.remove('flex');
+        deleteId = null;
+    };
+
+    window.deleteResult = (id) => {
+        deleteId = id;
+        deleteModal.classList.remove('hidden');
+        deleteModal.classList.add('flex');
+    };
+
+    confirmDeleteBtn.addEventListener('click', async () => {
+        if (!deleteId) return;
+        
+        const originalText = confirmDeleteBtn.innerHTML;
+        confirmDeleteBtn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">progress_activity</span> Deleting...';
+        confirmDeleteBtn.disabled = true;
+
+        try {
+            if (window.db) {
+                await db.collection('exam_results').doc(deleteId).delete();
+                // Refresh local data
+                allResults = allResults.filter(r => r.id !== deleteId);
+                renderTable(allResults); 
+                updateStats(allResults);
+                
+                // Show success (optional, or just close)
+                closeDeleteModal();
+            } else {
+                alert('Firebase not connected. Cannot delete.');
+                closeDeleteModal();
+            }
+        } catch (error) {
+            console.error("Error deleting document: ", error);
+            alert('Error deleting result. Check console.');
+            closeDeleteModal();
+        } finally {
+            confirmDeleteBtn.innerHTML = originalText;
+            confirmDeleteBtn.disabled = false;
+        }
+    });
+
+    // Close delete modal on outside click
+    deleteModal.addEventListener('click', (e) => {
+        if (e.target === deleteModal) closeDeleteModal();
+    });
 
     // 5. Update Stats
     function updateStats(data) {
