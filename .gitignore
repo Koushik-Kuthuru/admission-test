@@ -1,0 +1,11 @@
+# Firebase
+admissiontest-idpskalaburagi-firebase-adminsdk-fbsvc-1b523c0c25.json
+firebase-debug.log
+.firebase/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dependencies
+node_modules/

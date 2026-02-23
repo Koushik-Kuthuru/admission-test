@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Questions to Firestore</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-init.js"></script>
+    <!-- Import the parsed data -->
+    <script src="js/data.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-md">
+        <h1 class="text-2xl font-bold mb-4">Upload Questions to Firestore</h1>
+        
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+            <p class="font-bold text-yellow-800">⚠️ Important Requirement</p>
+            <p class="text-yellow-700 text-sm">
+                Before clicking upload, ensure your Firestore Rules allow writes to the 'questions' collection:
+                <br>
+                <code>match /questions/{document=**} { allow read, write: if true; }</code>
+            </p>
+        </div>
+
+        <button id="upload-btn" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition-colors flex items-center gap-2">
+            <span>Upload All Questions</span>
+        </button>
+
+        <div id="status" class="mt-6 space-y-2 text-sm font-mono max-h-64 overflow-y-auto bg-gray-900 text-green-400 p-4 rounded-lg hidden">
+            <!-- Logs will appear here -->
+        </div>
+    </div>
+
+    <script>
+        const uploadBtn = document.getElementById('upload-btn');
+        const statusDiv = document.getElementById('status');
+
+        function log(msg) {
+            statusDiv.classList.remove('hidden');
+            const p = document.createElement('div');
+            p.textContent = `> ${msg}`;
+            statusDiv.appendChild(p);
+            statusDiv.scrollTop = statusDiv.scrollHeight;
+        }
+
+        uploadBtn.addEventListener('click', async () => {
+            if (!window.db) {
+                alert('Firebase not initialized. Check console.');
+                return;
+            }
+            
+            if (!window.QUESTIONS || !window.EXAM_CONFIG) {
+                alert('Questions data not loaded. Check if js/data.js is present.');
+                return;
+            }
+
+            uploadBtn.disabled = true;
+            uploadBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            log("Starting upload...");
+
+            try {
+                let batch = db.batch();
+                let batchCount = 0;
+                let totalDocs = 0;
+                
+                const questionsData = window.QUESTIONS;
+                const config = window.EXAM_CONFIG;
+
+                for (const [grade, gradeData] of Object.entries(questionsData)) {
+                    // Check if this grade has streams
+                    const hasStreams = config[grade] && config[grade].streams;
+
+                    if (hasStreams) {
+                        // gradeData keys are streams
+                        for (const [streamName, sets] of Object.entries(gradeData)) {
+                            // sets keys are Set Names (A, B, C)
+                            for (const [setName, subjects] of Object.entries(sets)) {
+                                const docId = `${grade}_${streamName}_${setName}`.replace(/\s+/g, '_'); // sanitize ID
+                                const docRef = db.collection('questions').doc(docId);
+                                
+                                batch.set(docRef, {
+                                    grade: grade,
+                                    stream: streamName,
+                                    set: setName,
+                                    subjects: subjects,
+                                    updatedAt: new Date()
+                                });
+
+                                batchCount++;
+                                totalDocs++;
+
+                                if (batchCount >= 450) {
+                                    await batch.commit();
+                                    log(`Committed batch of ${batchCount} documents...`);
+                                    batch = db.batch(); // Start new batch
+                                    batchCount = 0;
+                                }
+                            }
+                        }
+                    } else {
+                        // gradeData keys are Set Names (A, B, C)
+                        for (const [setName, subjects] of Object.entries(gradeData)) {
+                            const docId = `${grade}_${setName}`;
+                            const docRef = db.collection('questions').doc(docId);
+                            
+                            batch.set(docRef, {
+                                grade: grade,
+                                set: setName,
+                                subjects: subjects,
+                                updatedAt: new Date()
+                            });
+
+                            batchCount++;
+                            totalDocs++;
+
+                            if (batchCount >= 450) {
+                                await batch.commit();
+                                log(`Committed batch of ${batchCount} documents...`);
+                                batch = db.batch(); // Start new batch
+                                batchCount = 0;
+                            }
+                        }
+                    }
+                }
+
+                if (batchCount > 0) {
+                    await batch.commit();
+                }
+
+                log(`✅ Success! Uploaded ${totalDocs} question sets.`);
+                log("You can now revert your Firestore Rules.");
+                alert("Upload Complete!");
+
+            } catch (error) {
+                console.error(error);
+                log(`❌ Error: ${error.message}`);
+                alert(`Error: ${error.message}`);
+            } finally {
+                uploadBtn.disabled = false;
+                uploadBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        });
+    </script>
+</body>
+</html>

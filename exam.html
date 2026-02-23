@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Examination - IDPS Kalaburagi</title>
+    <script src="js/config.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        /* Prevent text selection during exam */
+        body {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+    </style>
+</head>
+<body class="bg-idps-light min-h-screen flex flex-col font-sans">
+    
+    <!-- Top Header -->
+    <header class="bg-white/95 backdrop-blur-xl shadow-sm border-b border-gray-200 z-40 sticky top-0 h-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                 <div class="w-9 h-9">
+                    <img src="assets/images/idps-logo.png" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1MCIgZmlsbD0iIzJmN2YzMyIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9ImFyaWFsIiBmb250LXNpemU9IjQwIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9ImNlbnRyYWwiPkk8L3RleHQ+PC9zdmc+'" alt="IDPS Logo" class="h-full w-full object-contain">
+                </div>
+                <div class="hidden sm:block">
+                    <h1 class="text-lg font-bold text-gray-900 tracking-tight">IDPS Kalaburagi</h1>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-3 md:space-x-6">
+                <!-- End Test Button -->
+                <button id="end-test-btn" class="flex items-center px-4 py-2 bg-red-50 text-red-700 border border-red-200 rounded-lg text-sm font-bold hover:bg-red-100 hover:border-red-300 transition-all shadow-sm group">
+                    <span class="material-symbols-outlined text-[20px] md:mr-2 group-hover:scale-110 transition-transform">stop_circle</span>
+                    <span class="hidden md:inline">End Test</span>
+                </button>
+
+                <!-- Timer -->
+                <div class="bg-gray-900 text-white px-5 py-2 rounded-lg font-mono font-bold flex items-center shadow-md ring-2 ring-gray-900 ring-offset-2 transition-all duration-300" id="timer-container">
+                    <span class="material-symbols-outlined mr-2 text-yellow-400 text-[20px] animate-pulse-slow">timer</span>
+                    <span id="timer" class="text-lg tracking-widest">00:00</span>
+                </div>
+                
+                <!-- Student Info -->
+                <div class="flex items-center border-l pl-6 border-gray-200 h-8">
+                    <div class="text-right mr-3 hidden md:block">
+                        <p class="text-[10px] text-gray-400 uppercase tracking-wider font-bold">Candidate</p>
+                        <p class="text-sm font-bold text-gray-900 truncate max-w-[150px]" id="student-name-display">Loading...</p>
+                    </div>
+                    <div class="w-9 h-9 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center text-gray-600 border border-gray-300 shadow-inner">
+                        <span class="material-symbols-outlined text-[20px]">person</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 py-8 max-w-7xl h-[calc(100vh-4rem)]">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 h-full pb-4">
+            
+            <!-- Question Area -->
+            <div class="lg:col-span-3 flex flex-col h-full">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 flex-grow flex flex-col relative overflow-hidden ring-1 ring-black/5">
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-gray-50 h-1">
+                        <div class="bg-gradient-to-r from-idps-primary to-idps-accent h-1 transition-all duration-500 ease-out" id="progress-bar" style="width: 0%"></div>
+                    </div>
+
+                    <!-- Header inside card -->
+                <div class="px-5 py-4 md:px-8 md:py-5 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white gap-3 sm:gap-0">
+                    <div class="flex items-center space-x-3 md:space-x-4 w-full sm:w-auto justify-between sm:justify-start">
+                        <span class="bg-gray-900 text-white text-xs font-bold px-3 py-1.5 rounded uppercase tracking-wide shadow-sm flex items-center">
+                            Question <span id="current-q-num" class="text-yellow-400 mx-1">1</span> <span class="text-gray-500 font-normal mx-0.5">/</span> <span id="total-q-num">--</span>
+                        </span>
+                        <div class="h-4 w-px bg-gray-200 hidden sm:block"></div>
+                        <span class="text-gray-500 text-xs font-bold uppercase tracking-wider" id="set-display">Set --</span>
+                    </div>
+                    <div class="text-xs text-gray-400 font-medium bg-gray-50 px-3 py-1.5 rounded border border-gray-100 w-full sm:w-auto text-center sm:text-left">
+                        Class: <span id="class-display" class="text-gray-700 font-bold ml-1">--</span>
+                    </div>
+                </div>
+
+                <!-- Scrollable Content -->
+                <div class="p-5 md:p-10 flex-grow overflow-y-auto custom-scrollbar relative bg-gray-50/30">
+                    <h2 id="question-text" class="text-lg md:text-2xl font-bold text-gray-900 mb-6 md:mb-8 leading-relaxed font-display">
+                        <div class="animate-pulse flex space-x-4">
+                            <div class="flex-1 space-y-4 py-1">
+                                <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+                                <div class="h-4 bg-gray-200 rounded"></div>
+                            </div>
+                        </div>
+                    </h2>
+
+                    <div id="options-container" class="space-y-3 md:space-y-4 max-w-3xl pb-20 lg:pb-0">
+                        <!-- Options injected here -->
+                    </div>
+                </div>
+
+                <!-- Footer Navigation -->
+                <div class="bg-white px-5 py-4 md:px-8 md:py-5 border-t border-gray-100 flex justify-between items-center z-10 fixed bottom-0 left-0 right-0 lg:static lg:w-full shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] lg:shadow-none">
+                    <button id="prev-btn" class="flex items-center px-4 py-2.5 md:px-5 border border-gray-200 shadow-sm text-sm font-bold rounded-xl text-gray-700 bg-gray-50 hover:bg-gray-100 hover:text-gray-900 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all gap-2">
+                        <span class="material-symbols-outlined text-[18px]">arrow_back</span> <span class="hidden sm:inline">Previous</span>
+                    </button>
+                        
+                        <div class="flex gap-3">
+                            <button id="next-btn" class="flex items-center px-6 md:px-8 py-2.5 border border-transparent text-sm font-bold rounded-xl shadow-lg shadow-green-600/20 text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600 transition-all transform hover:-translate-y-0.5 gap-2">
+                                Next <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                            </button>
+
+                            <button id="submit-btn" class="hidden flex items-center px-6 md:px-8 py-2.5 border border-transparent text-sm font-bold rounded-xl shadow-lg shadow-green-600/20 text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600 transition-all transform hover:-translate-y-0.5 gap-2">
+                                <span class="hidden sm:inline">Submit Exam</span> <span class="sm:hidden">Submit</span> <span class="material-symbols-outlined text-[18px]">check_circle</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question Palette (Desktop) -->
+            <div class="hidden lg:flex lg:col-span-1 flex-col h-full">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 flex flex-col h-full overflow-hidden ring-1 ring-black/5">
+                    <div class="p-5 border-b border-gray-100 bg-gray-50/50">
+                        <h3 class="font-bold text-gray-900 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-gray-400">grid_view</span>
+                            Question Palette
+                        </h3>
+                    </div>
+                    
+                    <div class="p-5 flex-grow overflow-y-auto custom-scrollbar bg-white">
+                        <div class="grid grid-cols-5 gap-3" id="question-palette">
+                            <!-- Palette buttons injected here -->
+                        </div>
+                    </div>
+
+                    <div class="p-5 bg-gray-50 border-t border-gray-100 text-xs font-medium text-gray-500 space-y-3">
+                        <div class="flex items-center">
+                            <span class="w-2.5 h-2.5 rounded-full bg-idps-primary ring-2 ring-green-100 mr-3"></span> Answered
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-2.5 h-2.5 rounded-full bg-white border border-gray-300 mr-3"></span> Not Answered
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-2.5 h-2.5 rounded-full bg-gray-900 mr-3"></span> Current Question
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics-compat.js"></script>
+    <script src="js/firebase-init.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/exam.js"></script>
+</body>
+</html>
