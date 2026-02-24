@@ -297,33 +297,60 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = 'result.html';
     }
 
-    submitBtn.addEventListener('click', () => {
+    // Custom Modal Elements
+    const endTestModal = document.getElementById('endTestModal');
+    const endTestMessage = document.getElementById('endTestMessage');
+    const confirmEndTestBtn = document.getElementById('confirmEndTestBtn');
+    const cancelEndTestBtn = document.getElementById('cancelEndTestBtn');
+
+    // Helper to show modal
+    const showEndTestModal = (sourceBtn) => {
         const answeredCount = Object.keys(userAnswers).length;
         const remaining = questions.length - answeredCount;
         
-        let message = 'Are you sure you want to submit?';
+        let message = 'You have answered all questions. Are you sure you want to finish the test?';
+        
         if (remaining > 0) {
-            message = `You have ${remaining} unanswered questions. Are you sure you want to submit?`;
+            message = `You have <span class="font-bold text-red-600 text-lg mx-1">${remaining}</span> unanswered questions.<br>Ending the test will submit your current progress. Continue?`;
         }
+        
+        endTestMessage.innerHTML = message;
+        endTestModal.classList.remove('hidden');
+        endTestModal.classList.add('flex');
+    };
 
-        if (confirm(message)) {
+    // Close Modal
+    const closeEndTestModal = () => {
+        endTestModal.classList.add('hidden');
+        endTestModal.classList.remove('flex');
+    };
+
+    // Event Listeners for Modal
+    if (cancelEndTestBtn) {
+        cancelEndTestBtn.addEventListener('click', closeEndTestModal);
+    }
+    
+    if (confirmEndTestBtn) {
+        confirmEndTestBtn.addEventListener('click', () => {
+            closeEndTestModal();
             submitExam();
-        }
+        });
+    }
+
+    // Close on outside click
+    if (endTestModal) {
+        endTestModal.addEventListener('click', (e) => {
+            if (e.target === endTestModal) closeEndTestModal();
+        });
+    }
+
+    submitBtn.addEventListener('click', () => {
+        showEndTestModal();
     });
 
     if (endTestBtn) {
         endTestBtn.addEventListener('click', () => {
-            const answeredCount = Object.keys(userAnswers).length;
-            const remaining = questions.length - answeredCount;
-            
-            let message = 'Are you sure you want to end the test? This will submit your current answers.';
-            if (remaining > 0) {
-                message = `You have ${remaining} unanswered questions. Ending the test will submit your current progress. Continue?`;
-            }
-
-            if (confirm(message)) {
-                submitExam();
-            }
+            showEndTestModal();
         });
     }
 

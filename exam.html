@@ -168,6 +168,30 @@
         </div>
     </main>
 
+    <!-- Custom End Test Modal -->
+    <div id="endTestModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl p-6 md:p-8 max-w-sm w-full mx-4 animate-slide-up transform transition-all">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-yellow-50 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="material-symbols-outlined text-4xl">warning</span>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Finish Test?</h3>
+                <p id="endTestMessage" class="text-gray-600 mb-6 leading-relaxed">
+                    You have <span class="font-bold text-red-600">--</span> unanswered questions. Ending the test will submit your current progress. Continue?
+                </p>
+                
+                <div class="flex gap-3">
+                    <button id="cancelEndTestBtn" class="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-bold transition-colors">
+                        Cancel
+                    </button>
+                    <button id="confirmEndTestBtn" class="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 font-bold shadow-lg shadow-green-600/20 transition-all transform hover:-translate-y-0.5">
+                        Finish Test
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics-compat.js"></script>

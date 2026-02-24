@@ -162,10 +162,10 @@
 
 - **A)** Yellow
 - **B)** Red
-- **C)** Green
-- **D)** -
+- **C)** Blue
+- **D)** Green
 
-> **Correct Answer:** C (Green)
+> **Correct Answer:** C (Blue)
 
 ---
 

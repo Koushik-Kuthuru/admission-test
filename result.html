@@ -18,12 +18,42 @@
             }
             body {
                 background-color: white;
+                font-size: 12px;
             }
-            .shadow-xl {
+            .shadow-xl, .shadow-2xl, .shadow-sm {
                 box-shadow: none !important;
             }
             .border {
-                border: 1px solid #ddd !important;
+                border-color: #e5e7eb !important;
+            }
+            .print\:border-0 {
+                border: 0 !important;
+            }
+            .print\:shadow-none {
+                box-shadow: none !important;
+            }
+            .print\:w-full {
+                width: 100% !important;
+                max-width: none !important;
+            }
+            /* Ensure layout is clean */
+            .grid {
+                display: grid !important;
+            }
+            .print\:block {
+                display: block !important;
+            }
+            /* Colors for print */
+            .text-idps-primary {
+                color: #2f7f33 !important;
+            }
+            .bg-green-50 {
+                background-color: #f0fdf4 !important;
+                -webkit-print-color-adjust: exact;
+            }
+            .bg-red-50 {
+                background-color: #fef2f2 !important;
+                -webkit-print-color-adjust: exact;
             }
         }
     </style>
@@ -81,7 +111,7 @@
                 <h2 class="text-3xl font-bold text-gray-900 mb-2 print:hidden font-display">Examination Completed</h2>
                 <p class="text-gray-500 mb-10 print:hidden text-lg">Thank you for completing the assessment.</p>
 
-                <div class="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-10 text-left">
+                <div class="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-10 text-left">
                     <div class="bg-gray-50 p-4 md:p-5 rounded-2xl border border-gray-100 hover:border-idps-primary/30 transition-colors group">
                         <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wider font-bold mb-1.5 md:mb-2 group-hover:text-idps-primary transition-colors">Candidate</p>
                         <p class="font-bold text-gray-900 text-base md:text-lg truncate" id="student-name">--</p>
@@ -94,10 +124,7 @@
                         <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wider font-bold mb-1.5 md:mb-2 group-hover:text-green-600 transition-colors">Date</p>
                         <p class="font-bold text-gray-900 text-base md:text-lg" id="exam-date">--</p>
                     </div>
-                     <div class="bg-gray-50 p-4 md:p-5 rounded-2xl border border-gray-100 hover:border-blue-500/30 transition-colors group">
-                        <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wider font-bold mb-1.5 md:mb-2 group-hover:text-blue-600 transition-colors">Set Code</p>
-                        <p class="font-bold text-gray-900 text-base md:text-lg" id="exam-set">--</p>
-                    </div>
+                     <!-- Set Removed -->
                 </div>
 
                 <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 md:p-8 border border-blue-100 mb-8 md:mb-10 print:bg-white print:border-2 print:border-gray-800 relative overflow-hidden">
@@ -171,7 +198,7 @@
         }
         document.getElementById('student-class').textContent = classDisplay;
         
-        document.getElementById('exam-set').textContent = resultData.set || '--';
+        // document.getElementById('exam-set').textContent = resultData.set || '--'; // REMOVED
         
         const date = new Date(resultData.date);
         document.getElementById('exam-date').textContent = date.toLocaleDateString();
@@ -182,49 +209,55 @@
 
         // Render Details
         const list = document.getElementById('questions-list');
-        resultData.details.forEach((item, index) => {
-            const div = document.createElement('div');
-            const isCorrect = item.isCorrect;
-            const statusColor = isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200';
-            const icon = isCorrect ? 'text-green-500 check_circle' : 'text-red-500 cancel';
-            const textColor = isCorrect ? 'text-green-800' : 'text-red-800';
+        if (resultData.details && Array.isArray(resultData.details)) {
+            resultData.details.forEach((item, index) => {
+                const div = document.createElement('div');
+                const isCorrect = item.isCorrect;
+                const statusColor = isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200';
+                const icon = isCorrect ? 'text-green-500 check_circle' : 'text-red-500 cancel';
+                const textColor = isCorrect ? 'text-green-800' : 'text-red-800';
 
-            div.className = `p-4 rounded-lg border ${statusColor} text-sm`;
-            div.innerHTML = `
-                <div class="flex items-start">
-                    <div class="flex-shrink-0 mt-0.5 mr-3 flex flex-col items-center">
-                        <span class="font-bold text-gray-500 text-xs">Q${index + 1}</span>
-                        ${item.subject ? `<div class="mt-1 text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 uppercase tracking-tighter">${item.subject}</div>` : ''}
-                    </div>
-                    <div class="flex-grow">
-                        <p class="font-medium text-gray-900 mb-2">${item.question}</p>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                            <div class="${textColor} font-semibold">
-                                <span class="text-gray-500 font-normal">Your Answer:</span> ${item.userAnswer}
-                            </div>
-                            <div class="text-green-700 font-semibold">
-                                <span class="text-gray-500 font-normal">Correct Answer:</span> ${item.correctAnswer}
+                div.className = `p-4 rounded-lg border ${statusColor} text-sm break-inside-avoid`;
+                div.innerHTML = `
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 mt-0.5 mr-3 flex flex-col items-center">
+                            <span class="font-bold text-gray-500 text-xs">Q${index + 1}</span>
+                            ${item.subject ? `<div class="mt-1 text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 uppercase tracking-tighter">${item.subject}</div>` : ''}
+                        </div>
+                        <div class="flex-grow">
+                            <p class="font-medium text-gray-900 mb-2">${item.question}</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm">
+                                <div class="${textColor} font-bold">
+                                    <span class="text-gray-500 font-normal">Your Answer:</span> ${item.userAnswer}
+                                    <span class="material-symbols-outlined text-[14px] align-text-bottom ml-1">${isCorrect ? 'check' : 'close'}</span>
+                                </div>
+                                <div class="text-gray-700">
+                                    <span class="text-gray-500">Correct Answer:</span> <span class="font-bold">${item.correctAnswer}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="flex-shrink-0 ml-3">
-                         <span class="material-symbols-outlined text-xl ${isCorrect ? 'text-green-500' : 'text-red-500'}">${isCorrect ? 'check_circle' : 'cancel'}</span>
-                    </div>
-                </div>
-            `;
-            list.appendChild(div);
-        });
+                `;
+                list.appendChild(div);
+            });
+        } else {
+            list.innerHTML = '<p class="text-gray-500 text-center italic">Detailed analysis not available.</p>';
+        }
 
-        // Toggle Details
+        // Toggle Details Logic
         const toggleBtn = document.getElementById('toggle-details');
         const detailsContainer = document.getElementById('details-container');
         const toggleIcon = document.getElementById('toggle-icon');
-        
+
         toggleBtn.addEventListener('click', () => {
             detailsContainer.classList.toggle('hidden');
             toggleIcon.classList.toggle('rotate-180');
-            toggleBtn.querySelector('span:last-child').textContent = detailsContainer.classList.contains('hidden') ? 'View Detailed Analysis' : 'Hide Detailed Analysis';
+            const textSpan = toggleBtn.querySelector('span:last-child');
+            if (textSpan) {
+                textSpan.textContent = detailsContainer.classList.contains('hidden') ? 'View Detailed Analysis' : 'Hide Detailed Analysis';
+            }
         });
     </script>
+
 </body>
 </html>
