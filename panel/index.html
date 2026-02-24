@@ -74,7 +74,8 @@
             // In a real production app, this should be done via Firebase Auth
             if (u === 'admin' && p === 'idps@123') {
                 sessionStorage.setItem('adminLoggedIn', 'true');
-                window.location.href = 'dashboard.html';
+                // Use absolute path to ensure correct redirection
+                window.location.href = '/panel/dashboard.html';
             } else {
                 err.classList.remove('hidden');
                 // Shake animation

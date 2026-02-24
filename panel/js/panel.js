@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 1. Auth Check
     const isAdmin = sessionStorage.getItem('adminLoggedIn');
     if (!isAdmin) {
-        window.location.href = 'index.html';
+        window.location.href = '/panel/index.html';
         return;
     }
 
