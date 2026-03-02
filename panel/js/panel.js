@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const modalContent = document.getElementById('modalContent');
     const logoutBtn = document.getElementById('logoutBtn');
 
-    let allResults = [];
+    window.allResults = [];
 
     // 3. Fetch Data
     async function fetchResults() {
@@ -32,20 +32,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             refreshBtn.disabled = true;
 
             const snapshot = await db.collection('exam_results').orderBy('date', 'desc').get();
-            
-            allResults = [];
+
+            window.allResults = [];
             snapshot.forEach(doc => {
                 const data = doc.data();
-                allResults.push({
+                window.allResults.push({
                     id: doc.id,
                     ...data
                 });
             });
 
-            console.log("Fetched results:", allResults.length);
-            renderTable(allResults);
-            updateStats(allResults);
-            populateFilters(allResults);
+            console.log("Fetched results:", window.allResults.length);
+            renderTable(window.allResults);
+            updateStats(window.allResults);
+            populateFilters(window.allResults);
 
         } catch (error) {
             console.error("Error fetching results:", error);
@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         tableBody.innerHTML = '';
         cardsContainer.innerHTML = '';
         loadingState.classList.add('hidden');
-        
+
         if (data.length === 0) {
             emptyState.classList.remove('hidden');
             showingCount.textContent = 0;
@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const total = result.total || 0;
             const percentage = result.percentage || 0;
             const date = result.date ? new Date(result.date).toLocaleDateString() : 'N/A';
-            
+
             // Determine badge color based on percentage
             let badgeClass = 'bg-gray-100 text-gray-800';
             if (percentage >= 80) badgeClass = 'bg-green-100 text-green-800';
@@ -117,13 +117,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div class="relative inline-block text-left">
-                        <button class="p-2 rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-idps-primary" onclick="toggleMenu('${result.id}')">
+                        <button class="p-2 rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-idps-primary" onclick="toggleMenu('${result.id}', event)">
                             <span class="material-symbols-outlined text-gray-500">more_vert</span>
                         </button>
                         <div id="menu-${result.id}" class="hidden absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50 animate-fade-in origin-top-right focus:outline-none">
                             <div class="py-1" role="menu" aria-orientation="vertical">
-                                <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 flex items-center gap-2" role="menuitem" onclick="openDetails(allResults.find(r => r.id === '${result.id}'))">
+                                <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 flex items-center gap-2" role="menuitem" onclick="openDetails('${result.id}')">
                                     <span class="material-symbols-outlined text-[18px]">visibility</span> View Details
+                                </button>
+                                <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 flex items-center gap-2" role="menuitem" onclick="downloadAnswers('${result.id}')">
+                                    <span class="material-symbols-outlined text-[18px]">download</span> Download Answers
                                 </button>
                                 <button class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-900 flex items-center gap-2" role="menuitem" onclick="deleteResult('${result.id}')">
                                     <span class="material-symbols-outlined text-[18px]">delete</span> Delete Result
@@ -133,7 +136,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                 </td>
             `;
-            
+
             tableBody.appendChild(row);
 
             // Mobile Card
@@ -142,13 +145,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             card.innerHTML = `
                 <div class="absolute top-2 right-2">
                     <div class="relative inline-block text-left">
-                        <button class="p-1 rounded-full hover:bg-gray-100 transition-colors" onclick="toggleMenu('mobile-${result.id}')">
+                        <button class="p-1 rounded-full hover:bg-gray-100 transition-colors" onclick="toggleMenu('mobile-${result.id}', event)">
                             <span class="material-symbols-outlined text-gray-400 text-[20px]">more_vert</span>
                         </button>
                         <div id="menu-mobile-${result.id}" class="hidden absolute right-0 mt-2 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50 animate-fade-in origin-top-right">
                             <div class="py-1">
-                                <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2" onclick="openDetails(allResults.find(r => r.id === '${result.id}'))">
+                                <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2" onclick="openDetails('${result.id}')">
                                     <span class="material-symbols-outlined text-[16px]">visibility</span> View
+                                </button>
+                                <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2" onclick="downloadAnswers('${result.id}')">
+                                    <span class="material-symbols-outlined text-[16px]">download</span> Download
                                 </button>
                                 <button class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2" onclick="deleteResult('${result.id}')">
                                     <span class="material-symbols-outlined text-[16px]">delete</span> Delete
@@ -180,19 +186,114 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Toggle Menu
-    window.toggleMenu = (id) => {
+    window.toggleMenu = (id, ev) => {
         // Close all other menus first
         document.querySelectorAll('[id^="menu-"]').forEach(el => {
-            if (el.id !== `menu-${id}`) el.classList.add('hidden');
+            // For desktop rows ids look like `menu-<docId>`
+            // For mobile cards ids look like `menu-mobile-<docId>`
+            const isTarget =
+                el.id === `menu-${id}` ||
+                el.id === `menu-mobile-${id}` ||
+                el.id === id; // fallback for directly passed full id
+
+            if (!isTarget) {
+                el.classList.add('hidden');
+            }
         });
-        
-        const menu = document.getElementById(`menu-${id}`);
+
+        // Open/close the targeted menu
+        const menuById = document.getElementById(`menu-${id}`);
+        const mobileMenuById = document.getElementById(`menu-mobile-${id}`);
+        const explicitMenu = document.getElementById(id);
+
+        const menu = menuById || mobileMenuById || explicitMenu;
         if (menu) {
             menu.classList.toggle('hidden');
         }
-        
+
         // Stop propagation to prevent immediate closing
-        event.stopPropagation();
+        if (ev && typeof ev.stopPropagation === 'function') {
+            ev.stopPropagation();
+        }
+    };
+
+    // Helper: normalize details array in case structure changes
+    function getResultDetails(result) {
+        if (!result) return [];
+        if (Array.isArray(result.details)) return result.details;
+        if (Array.isArray(result.results)) return result.results;
+        return [];
+    }
+
+    // Download answers (questions + user's answers + correct answers)
+    window.downloadAnswers = (id) => {
+        const result = window.allResults.find(r => r.id === id);
+        if (!result) {
+            console.error("Result not found for ID:", id);
+            return;
+        }
+        const details = getResultDetails(result);
+        if (!details || details.length === 0) {
+            alert('No detailed answers available to download for this attempt.');
+            return;
+        }
+
+        const student = result.student || {};
+
+        // CSV escaping helper
+        const escapeCsv = (value) => {
+            if (value === null || value === undefined) return '""';
+            const str = String(value).replace(/"/g, '""');
+            return `"${str}"`;
+        };
+
+        const lines = [];
+
+        // Basic metadata header
+        lines.push(['Student Name', escapeCsv(student.name || 'N/A')].join(','));
+        lines.push(['Class', escapeCsv(result.class || 'N/A')].join(','));
+        lines.push(['Stream', escapeCsv(student.stream || 'N/A')].join(','));
+        lines.push([
+            'Date',
+            escapeCsv(result.date ? new Date(result.date).toLocaleString() : 'N/A')
+        ].join(','));
+        lines.push(''); // empty line
+
+        // Table header
+        lines.push([
+            'Q No.',
+            'Question',
+            'Your Answer',
+            'Correct Answer',
+            'Is Correct'
+        ].join(','));
+
+        // Each question row
+        details.forEach((q, idx) => {
+            lines.push([
+                idx + 1,
+                escapeCsv(q.question || ''),
+                escapeCsv(q.userAnswer || ''),
+                escapeCsv(q.correctAnswer || ''),
+                escapeCsv(q.isCorrect ? 'Yes' : 'No')
+            ].join(','));
+        });
+
+        // Prepend BOM for better compatibility with Excel/Numbers
+        const csvContent = '\uFEFF' + lines.join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+
+        const studentName = (student.name || 'student').replace(/[^a-z0-9]+/gi, '_').toLowerCase();
+        const filename = `answers_${studentName}_${result.id}.csv`;
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
     };
 
     // Close menus on outside click
@@ -220,7 +321,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     confirmDeleteBtn.addEventListener('click', async () => {
         if (!deleteId) return;
-        
+
         const originalText = confirmDeleteBtn.innerHTML;
         confirmDeleteBtn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">progress_activity</span> Deleting...';
         confirmDeleteBtn.disabled = true;
@@ -229,10 +330,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (window.db) {
                 await db.collection('exam_results').doc(deleteId).delete();
                 // Refresh local data
-                allResults = allResults.filter(r => r.id !== deleteId);
-                renderTable(allResults); 
-                updateStats(allResults);
-                
+                window.allResults = window.allResults.filter(r => r.id !== deleteId);
+                renderTable(window.allResults);
+                updateStats(window.allResults);
+
                 // Show success (optional, or just close)
                 closeDeleteModal();
             } else {
@@ -257,7 +358,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 5. Update Stats
     function updateStats(data) {
         totalExamsEl.textContent = data.length;
-        
+
         if (data.length > 0) {
             const totalScore = data.reduce((acc, curr) => acc + parseFloat(curr.percentage || 0), 0);
             const avg = (totalScore / data.length).toFixed(1);
@@ -271,10 +372,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     function populateFilters(data) {
         // Unique Classes
         const classes = [...new Set(data.map(item => item.class))].sort();
-        
+
         // Keep "All Classes" option
         classFilter.innerHTML = '<option value="">All Classes</option>';
-        
+
         classes.forEach(cls => {
             const opt = document.createElement('option');
             opt.value = cls;
@@ -288,12 +389,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         const term = searchInput.value.toLowerCase();
         const cls = classFilter.value;
 
-        const filtered = allResults.filter(item => {
+        const filtered = window.allResults.filter(item => {
             const student = item.student || {};
-            const matchesSearch = (student.name && student.name.toLowerCase().includes(term)) || 
-                                  (student.email && student.email.toLowerCase().includes(term)) ||
-                                  (student.phone && student.phone.includes(term));
-            
+            const matchesSearch = (student.name && student.name.toLowerCase().includes(term)) ||
+                (student.email && student.email.toLowerCase().includes(term)) ||
+                (student.phone && student.phone.includes(term));
+
             const matchesClass = cls === '' || item.class === cls;
 
             return matchesSearch && matchesClass;
@@ -308,9 +409,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     refreshBtn.addEventListener('click', fetchResults);
 
     // 8. Modal Logic
-    window.openDetails = (result) => {
+    window.openDetails = (id) => {
+        const result = window.allResults.find(r => r.id === id);
+        if (!result) {
+            console.error("Result not found for ID:", id);
+            return;
+        }
         const student = result.student || {};
-        
+
         // Generate Details HTML
         let detailsHtml = `
             <div class="grid grid-cols-2 gap-4 mb-6 bg-gray-50 p-4 rounded-lg border border-gray-100">
@@ -344,8 +450,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             <div class="space-y-4">
         `;
 
-        if (result.details && Array.isArray(result.details)) {
-            result.details.forEach((q, idx) => {
+        const details = getResultDetails(result);
+
+        if (details && details.length > 0) {
+            details.forEach((q, idx) => {
                 const isCorrect = q.isCorrect;
                 const statusClass = isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200';
                 const icon = isCorrect ? 'check_circle' : 'cancel';
@@ -375,7 +483,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         detailsHtml += `</div>`;
-        
+
         modalContent.innerHTML = detailsHtml;
         modal.classList.remove('hidden');
         modal.classList.add('flex');
@@ -393,7 +501,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Logout
     logoutBtn.addEventListener('click', () => {
-        if(confirm('Are you sure you want to sign out?')) {
+        if (confirm('Are you sure you want to sign out?')) {
             sessionStorage.removeItem('adminLoggedIn');
             window.location.href = 'index.html';
         }
